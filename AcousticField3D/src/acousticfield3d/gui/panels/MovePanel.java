@@ -22,19 +22,171 @@ import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JTextField;
 
+import java.io.IOException;
+import java.lang.Math;
+import com.leapmotion.leap.*;
+import com.leapmotion.leap.Gesture.State;
+
 /**
  *
  * @author Asier
  */
 public class MovePanel extends javax.swing.JPanel {
     final MainForm mf;
+    final Controller controller;
   
     Vector3f startPosition;
     float time;
     Vector3f snapBeadPosition = new Vector3f();
     
-    public MovePanel(MainForm mf) {
+    SampleListener listener = new SampleListener();
+    
+    class SampleListener extends Listener {
+        public void onInit(Controller controller) {
+            System.out.println("Initialized");
+        }
+
+        public void onConnect(Controller controller) {
+            System.out.println("Connected");
+            controller.enableGesture(Gesture.Type.TYPE_SWIPE);
+            controller.enableGesture(Gesture.Type.TYPE_CIRCLE);
+            controller.enableGesture(Gesture.Type.TYPE_SCREEN_TAP);
+            controller.enableGesture(Gesture.Type.TYPE_KEY_TAP);
+        }
+
+        public void onDisconnect(Controller controller) {
+            //Note: not dispatched when running in a debugger.
+            System.out.println("Disconnected");
+        }
+
+        public void onExit(Controller controller) {
+            System.out.println("Exited");
+        }
+
+        public void onFrame(Controller controller) {
+            // Get the most recent frame and report some basic information
+            Frame frame = controller.frame();
+            System.out.println("Frame id: " + frame.id()
+                             + ", timestamp: " + frame.timestamp()
+                             + ", hands: " + frame.hands().count()
+                             + ", fingers: " + frame.fingers().count()
+                             + ", tools: " + frame.tools().count()
+                             + ", gestures " + frame.gestures().count());
+
+            //Get hands
+            for(Hand hand : frame.hands()) {
+                String handType = hand.isLeft() ? "Left hand" : "Right hand";
+                System.out.println("  " + handType + ", id: " + hand.id()
+                                 + ", palm position: " + hand.palmPosition());
+
+                // Get the hand's normal vector and direction
+                Vector normal = hand.palmNormal();
+                Vector direction = hand.direction();
+
+                // Calculate the hand's pitch, roll, and yaw angles
+                System.out.println("  pitch: " + Math.toDegrees(direction.pitch()) + " degrees, "
+                                 + "roll: " + Math.toDegrees(normal.roll()) + " degrees, "
+                                 + "yaw: " + Math.toDegrees(direction.yaw()) + " degrees");
+
+                // Get arm bone
+                Arm arm = hand.arm();
+                System.out.println("  Arm direction: " + arm.direction()
+                                 + ", wrist position: " + arm.wristPosition()
+                                 + ", elbow position: " + arm.elbowPosition());
+
+                // Get fingers
+                for (Finger finger : hand.fingers()) {
+                    System.out.println("    " + finger.type() + ", id: " + finger.id()
+                                     + ", length: " + finger.length()
+                                     + "mm, width: " + finger.width() + "mm");
+
+                    //Get Bones
+                    for(Bone.Type boneType : Bone.Type.values()) {
+                        Bone bone = finger.bone(boneType);
+                        System.out.println("      " + bone.type()
+                                         + " bone, start: " + bone.prevJoint()
+                                         + ", end: " + bone.nextJoint()
+                                         + ", direction: " + bone.direction());
+                    }
+                }
+            }
+
+            // Get tools
+            for(Tool tool : frame.tools()) {
+                System.out.println("  Tool id: " + tool.id()
+                                 + ", position: " + tool.tipPosition()
+                                 + ", direction: " + tool.direction());
+            }
+
+            GestureList gestures = frame.gestures();
+            for (int i = 0; i < gestures.count(); i++) {
+                Gesture gesture = gestures.get(i);
+
+                switch (gesture.type()) {
+                    case TYPE_CIRCLE:
+                        CircleGesture circle = new CircleGesture(gesture);
+
+                        // Calculate clock direction using the angle between circle normal and pointable
+                        String clockwiseness;
+                        if (circle.pointable().direction().angleTo(circle.normal()) <= Math.PI/2) {
+                            // Clockwise if angle is less than 90 degrees
+                            clockwiseness = "clockwise";
+                        } else {
+                            clockwiseness = "counterclockwise";
+                        }
+
+                        // Calculate angle swept since last frame
+                        double sweptAngle = 0;
+                        if (circle.state() != State.STATE_START) {
+                            CircleGesture previousUpdate = new CircleGesture(controller.frame(1).gesture(circle.id()));
+                            sweptAngle = (circle.progress() - previousUpdate.progress()) * 2 * Math.PI;
+                        }
+
+                        System.out.println("  Circle id: " + circle.id()
+                                   + ", " + circle.state()
+                                   + ", progress: " + circle.progress()
+                                   + ", radius: " + circle.radius()
+                                   + ", angle: " + Math.toDegrees(sweptAngle)
+                                   + ", " + clockwiseness);
+                        break;
+                    case TYPE_SWIPE:
+                        SwipeGesture swipe = new SwipeGesture(gesture);
+                        System.out.println("  Swipe id: " + swipe.id()
+                                   + ", " + swipe.state()
+                                   + ", position: " + swipe.position()
+                                   + ", direction: " + swipe.direction()
+                                   + ", speed: " + swipe.speed());
+                        break;
+                    case TYPE_SCREEN_TAP:
+                        ScreenTapGesture screenTap = new ScreenTapGesture(gesture);
+                        System.out.println("  Screen Tap id: " + screenTap.id()
+                                   + ", " + screenTap.state()
+                                   + ", position: " + screenTap.position()
+                                   + ", direction: " + screenTap.direction());
+                        break;
+                    case TYPE_KEY_TAP:
+                        KeyTapGesture keyTap = new KeyTapGesture(gesture);
+                        System.out.println("  Key Tap id: " + keyTap.id()
+                                   + ", " + keyTap.state()
+                                   + ", position: " + keyTap.position()
+                                   + ", direction: " + keyTap.direction());
+                        break;
+                    default:
+                        System.out.println("Unknown gesture type.");
+                        break;
+                }
+            }
+
+            if (!frame.hands().isEmpty() || !gestures.isEmpty()) {
+                System.out.println();
+            }
+        }
+    }
+
+    
+    public MovePanel(MainForm mf, Controller controller) {
         this.mf = mf;
+        this.controller = controller;
         time = 0.0f;
         startPosition = new Vector3f();
         initComponents();
@@ -80,10 +232,11 @@ public class MovePanel extends javax.swing.JPanel {
         lateralQuadCheck = new javax.swing.JRadioButton();
         lateralHoloCheck = new javax.swing.JRadioButton();
         f1HoloCheck = new javax.swing.JCheckBox();
+        autoCalcCheck1 = new javax.swing.JCheckBox();
 
         jLabel2.setText("N:");
 
-        beadNSpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        beadNSpinner.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
 
         autoCalcCheck.setSelected(true);
         autoCalcCheck.setText("calc");
@@ -193,6 +346,14 @@ public class MovePanel extends javax.swing.JPanel {
 
         f1HoloCheck.setText("Holo");
 
+        autoCalcCheck1.setSelected(true);
+        autoCalcCheck1.setText("leap");
+        autoCalcCheck1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                leapEnableActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -259,13 +420,14 @@ public class MovePanel extends javax.swing.JPanel {
                                 .addComponent(f1HoloCheck))
                             .addComponent(offsetF2Text)))
                     .addGroup(layout.createSequentialGroup()
+                        .addComponent(lateralTwinCheck)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(lateralQuadCheck)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(lateralHoloCheck)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(lateralTwinCheck)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(lateralQuadCheck)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(lateralHoloCheck))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel1)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -273,7 +435,8 @@ public class MovePanel extends javax.swing.JPanel {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(lateralVortexCheck))
                             .addComponent(multiTrapCheck))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(autoCalcCheck1)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -306,12 +469,15 @@ public class MovePanel extends javax.swing.JPanel {
                     .addComponent(snapButton)
                     .addComponent(neutralButton))
                 .addGap(11, 11, 11)
-                .addComponent(multiTrapCheck)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(periodsLateralText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lateralVortexCheck))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(multiTrapCheck)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel1)
+                            .addComponent(periodsLateralText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lateralVortexCheck)))
+                    .addComponent(autoCalcCheck1, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lateralTwinCheck)
@@ -409,6 +575,25 @@ public class MovePanel extends javax.swing.JPanel {
         
         mf.needUpdate();
     }
+    
+    public void setBeadPosition(float x, float y, float z){
+        Entity e = getBeadEntity();
+        if (e == null){ return;}
+        
+        final Vector3f t = new Vector3f(x, y, z);
+        //t.multLocal( getSpeed() );
+        
+        final ArrayList<Entity> sel = mf.getSelection();
+        for (Entity ent : sel) {
+            ent.getTransform().getTranslation().set(t);
+        }
+        
+        mf.transformToGUI( e.getTransform() );
+            
+        doAutoCalcAndSend(true, false);
+        
+        mf.needUpdate();
+    }
 
     
    
@@ -466,6 +651,12 @@ public class MovePanel extends javax.swing.JPanel {
     private void neutralButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_neutralButtonActionPerformed
         applyVector(0, 0, 0, false);
     }//GEN-LAST:event_neutralButtonActionPerformed
+
+    private void leapEnableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_leapEnableActionPerformed
+        // Have the sample listener receive events from the controller
+        
+        controller.addListener(listener);
+    }//GEN-LAST:event_leapEnableActionPerformed
 
 
     public void snapBeadPosition(){
@@ -593,6 +784,7 @@ public class MovePanel extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox autoAddCheck;
     private javax.swing.JCheckBox autoCalcCheck;
+    private javax.swing.JCheckBox autoCalcCheck1;
     private javax.swing.JCheckBox autoSendCheck;
     private javax.swing.JButton backwardsButton;
     private javax.swing.JSpinner beadNSpinner;

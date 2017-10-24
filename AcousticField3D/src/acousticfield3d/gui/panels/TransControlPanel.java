@@ -15,6 +15,7 @@ import acousticfield3d.protocols.ArduinoNano16;
 import acousticfield3d.protocols.DeviceConnection;
 import acousticfield3d.protocols.DirectionalSpeakerFPGA;
 import acousticfield3d.protocols.SimpleFPGA;
+import acousticfield3d.protocols.ZynqFPGA;
 import acousticfield3d.scene.Entity;
 import acousticfield3d.simulation.AnimKeyFrame;
 import acousticfield3d.simulation.Animation;
@@ -63,6 +64,7 @@ public class TransControlPanel extends javax.swing.JPanel {
         phaseDownButton = new javax.swing.JButton();
         durationsText = new javax.swing.JTextField();
         durationsButton = new javax.swing.JButton();
+        jTextField1 = new javax.swing.JTextField();
 
         sendButton.setText("Send");
         sendButton.addActionListener(new java.awt.event.ActionListener() {
@@ -99,11 +101,11 @@ public class TransControlPanel extends javax.swing.JPanel {
             }
         });
 
-        deviceCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "MEGA", "SimpleFPGA", "Nano8", "Directional Speaker", "MEGA_Anim", "Nano16" }));
+        deviceCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "MEGA", "SimpleFPGA", "Nano8", "Directional Speaker", "MEGA_Anim", "Nano16", "Zynq" }));
 
         jLabel1.setText("Phase");
 
-        phaseSpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        phaseSpinner.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
         phaseSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 phaseSpinnerStateChanged(evt);
@@ -147,6 +149,8 @@ public class TransControlPanel extends javax.swing.JPanel {
             }
         });
 
+        jTextField1.setText("localhost");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -155,10 +159,9 @@ public class TransControlPanel extends javax.swing.JPanel {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(durationsText)
-                    .addComponent(deviceCombo, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(initSerialButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 10, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 45, Short.MAX_VALUE)
                         .addComponent(stopSerialButton))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel1)
@@ -167,19 +170,21 @@ public class TransControlPanel extends javax.swing.JPanel {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(phaseUpButton))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(onButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(offButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(phaseDownButton))
-                    .addGroup(layout.createSequentialGroup()
                         .addComponent(sendButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(switchButton))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(sendAnimButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(durationsButton)))
+                        .addComponent(durationsButton))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(onButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(offButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 150, Short.MAX_VALUE)
+                        .addComponent(phaseDownButton))
+                    .addComponent(jTextField1)
+                    .addComponent(deviceCombo, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -205,7 +210,9 @@ public class TransControlPanel extends javax.swing.JPanel {
                     .addComponent(onButton)
                     .addComponent(offButton)
                     .addComponent(phaseDownButton))
-                .addGap(18, 18, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(deviceCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -293,10 +300,14 @@ public class TransControlPanel extends javax.swing.JPanel {
             device = new ArduinoMEGA64_Anim();
         }else if (index == 5){ // Nano16
             device = new ArduinoNano16();
+        }else if (index == 6){ //  SimpleFPGA
+            device = new ZynqFPGA(jTextField1.getText());
         }else{
             device = new DeviceConnection();
         }
-        device.connect( port ); //pop the GUI for selecting the port
+        if (index != 6) {
+            device.connect( port ); //pop the GUI for selecting the port
+        }
     }
     
     public void stopComm(){
@@ -375,6 +386,7 @@ public class TransControlPanel extends javax.swing.JPanel {
     private javax.swing.JTextField durationsText;
     private javax.swing.JButton initSerialButton;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JTextField jTextField1;
     private javax.swing.JButton offButton;
     private javax.swing.JButton onButton;
     private javax.swing.JButton phaseDownButton;

@@ -14,6 +14,9 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.leapmotion.leap.*;
+import com.leapmotion.leap.Gesture.State;
+
 /**
  *
  * @author Asier
@@ -56,7 +59,10 @@ public class AcousticField3D {
         } catch (Exception ex) {
         }
         
-        MainForm t = new MainForm(config);
+ 
+        Controller controller = new Controller();
+        
+        MainForm t = new MainForm(config, controller);
         t.setVisible(true);
         t.setLocationRelativeTo(null);
         

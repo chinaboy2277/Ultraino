@@ -70,6 +70,9 @@ import java.awt.image.BufferedImage;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
 
+import com.leapmotion.leap.*;
+import com.leapmotion.leap.Gesture.State;
+
 /**
  *
  * @author Asier
@@ -111,7 +114,7 @@ public final class MainForm extends javax.swing.JFrame {
     
     public final Config config;
     
-    public MainForm(Config config) {
+    public MainForm(Config config, Controller controller) {
         this.config = config;
         
         formats = new StringFormats();
@@ -131,7 +134,7 @@ public final class MainForm extends javax.swing.JFrame {
         domainPanel = new DomainPanel(this);
         transPanel = new TransducersPanel(this);
         transControlPanel = new TransControlPanel(this);
-        movePanel = new MovePanel(this);
+        movePanel = new MovePanel(this, controller);
         trapsPanel = new TrapsPanel(this);
         
         holoPatternsForm = new HoloPatternsForm(this);
