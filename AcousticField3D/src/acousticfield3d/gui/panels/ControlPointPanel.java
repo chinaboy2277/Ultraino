@@ -66,7 +66,7 @@ public class ControlPointPanel extends javax.swing.JPanel {
 
         jLabel41.setText("size:");
 
-        cpSizeText.setText("0.001");
+        cpSizeText.setText("0.005");
         cpSizeText.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cpSizeTextActionPerformed(evt);
