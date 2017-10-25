@@ -41,6 +41,11 @@ public class MovePanel extends javax.swing.JPanel {
     
     SampleListener listener = new SampleListener();
     
+    final float TILT = 20; //Leap motion x-axis tilt angle in degree
+    
+    Vector tiltReferenceY = new Vector(0f, (float)Math.cos(Math.toRadians(TILT)), -(float)Math.sin(Math.toRadians(TILT)));
+    Vector tiltReferenceZ = new Vector(0f, (float)Math.sin(Math.toRadians(TILT)), (float)Math.cos(Math.toRadians(TILT)));
+    
     class SampleListener extends Listener {
         public void onInit(Controller controller) {
             System.out.println("Initialized");
@@ -76,8 +81,15 @@ public class MovePanel extends javax.swing.JPanel {
             //Get hands
             Pointable index = frame.fingers().fingerType(Finger.Type.TYPE_INDEX).get(0);
             Vector i1 = index.tipPosition();
-            System.out.println("Index Finger: " + i1);
-            setBeadPosition(i1.get(0) / 1000.0f, i1.get(1) / 1000.0f, i1.get(2) / 1000.0f);
+            System.out.println("Index Finger absolut: " + i1);
+            
+            //Vector tiltReference = new Vector(0f, 1f, 1f);
+            float x = i1.dot(Vector.xAxis());
+            float y = i1.dot(tiltReferenceY);
+            float z = i1.dot(tiltReferenceZ);
+            
+            System.out.println("Index Finger tilted: (" + x + ", " + y + ", " + z + ")");
+            setBeadPosition(x / 1000.0f, y / 1000.0f, z / 1000.0f);
             
 
             
