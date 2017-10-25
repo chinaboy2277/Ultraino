@@ -27,6 +27,10 @@ import java.lang.Math;
 import com.leapmotion.leap.*;
 import com.leapmotion.leap.Gesture.State;
 
+import acousticfield3d.gui.panels.ControlHapticObject;
+
+import acousticfield3d.math.Ray;
+
 /**
  *
  * @author Asier
@@ -41,7 +45,8 @@ public class MovePanel extends javax.swing.JPanel {
     
     SampleListener listener = new SampleListener();
     
-    final float TILT = 20; //Leap motion x-axis tilt angle in degree
+    final float TILT = 0.0f; //Leap motion x-axis tilt angle in degree
+    final float ZOFFSET = 0.0f; //Z distance from center of the leap to center of the array in mm
     
     Vector tiltReferenceY = new Vector(0f, (float)Math.cos(Math.toRadians(TILT)), -(float)Math.sin(Math.toRadians(TILT)));
     Vector tiltReferenceZ = new Vector(0f, (float)Math.sin(Math.toRadians(TILT)), (float)Math.cos(Math.toRadians(TILT)));
@@ -81,22 +86,40 @@ public class MovePanel extends javax.swing.JPanel {
             //Get hands
             Pointable index = frame.fingers().fingerType(Finger.Type.TYPE_INDEX).get(0);
             Vector i1 = index.tipPosition();
-            System.out.println("Index Finger absolut: " + i1);
+            //System.out.println("Index Finger absolut: " + i1);
             
             //Vector tiltReference = new Vector(0f, 1f, 1f);
             float x = i1.dot(Vector.xAxis());
             float y = i1.dot(tiltReferenceY);
             float z = i1.dot(tiltReferenceZ);
             
-            System.out.println("Index Finger tilted: (" + x + ", " + y + ", " + z + ")");
-            setBeadPosition(x / 1000.0f, y / 1000.0f, z / 1000.0f);
+            //System.out.println("Index Finger tilted: (" + x + ", " + y + ", " + z + ")");
+            setBeadPosition(x / 1000.0f, y / 1000.0f, (z - ZOFFSET) / 1000.0f);
             
+            float c = checkCollision(x / 1000.0f, y / 1000.0f, (z - ZOFFSET) / 1000.0f);
+            System.out.println("Collision distance: (" + c + ")");
 
             
             /*if (!frame.hands().isEmpty() || !gestures.isEmpty()) {
                 System.out.println();
             }*/
         }
+    }
+    
+    public float checkCollision(float x, float y, float z) {
+        //mf.clearSelection();
+        float distance = 1337.0f;
+        for(MeshEntity me : mf.scene.getEntities()){
+            if ( (me.getTag() & Entity.TAG_OBJ) != 0){
+                //me.selected = true;
+                //mf.selection.add(me);
+                
+                float newDistance = me.rayToBox(new Ray(new Vector3f(x, y, z), new Vector3f(x, y, z), false));
+                if (newDistance < distance && newDistance != -1.0f)
+                    distance = newDistance;
+            }
+        }
+        return distance;
     }
 
     

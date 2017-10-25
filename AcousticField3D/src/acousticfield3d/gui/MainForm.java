@@ -25,6 +25,7 @@ import acousticfield3d.utils.DialogUtils;
 import acousticfield3d.utils.FileUtils;
 import acousticfield3d.gui.panels.AnimPanel;
 import acousticfield3d.gui.panels.ControlPointPanel;
+import acousticfield3d.gui.panels.ControlHapticObject;
 import acousticfield3d.gui.panels.MiscPanel;
 import acousticfield3d.gui.panels.MovePanel;
 import acousticfield3d.gui.panels.RtSlicePanel;
@@ -100,6 +101,7 @@ public final class MainForm extends javax.swing.JFrame {
     public final AnimPanel animPanel;
     public final MiscPanel miscPanel;
     public final ControlPointPanel cpPanel;
+    public final ControlHapticObject hapticPanel;
     public final DomainPanel domainPanel;
     public final TransducersPanel transPanel;
     public final TransControlPanel transControlPanel;
@@ -131,6 +133,7 @@ public final class MainForm extends javax.swing.JFrame {
         rtSlicePanel = new RtSlicePanel(this);
         animPanel = new AnimPanel(this);
         cpPanel = new ControlPointPanel(this);
+        hapticPanel = new ControlHapticObject(this);
         domainPanel = new DomainPanel(this);
         transPanel = new TransducersPanel(this);
         transControlPanel = new TransControlPanel(this);
@@ -173,6 +176,7 @@ public final class MainForm extends javax.swing.JFrame {
         mainTabPanel.addTab("Anim", animPanel);
         mainTabPanel.addTab("Misc", miscPanel);
         mainTabPanel.addTab("Points", cpPanel);
+        mainTabPanel.addTab("Haptics", hapticPanel);
         mainTabPanel.addTab("Sizes", domainPanel);
         mainTabPanel.addTab("Devs", transControlPanel);
         mainTabPanel.addTab("Move", movePanel);
@@ -1836,6 +1840,19 @@ public final class MainForm extends javax.swing.JFrame {
                 if (e != null) {
                     final Vector3f col = getClickOnObject(e, x, y);
                     cpPanel.addControlPoint(col.x, col.y, col.z, 0, -1, false);
+                    needUpdate();
+                }
+                return;
+            }
+            tags |= Entity.TAG_CONTROL_POINT | Entity.TAG_BEAD;
+        }else if (comp == hapticPanel){
+            
+            if ( hapticPanel.isClickAndPlace()){
+                
+                MeshEntity e = getEntityWithClick(x, y);
+                if (e != null) {
+                    final Vector3f col = getClickOnObject(e, x, y);
+                    hapticPanel.addHapticObject(col.x, col.y, col.z, 0, -1, false);
                     needUpdate();
                 }
                 return;
