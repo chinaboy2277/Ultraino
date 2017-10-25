@@ -128,7 +128,7 @@ public class ArduinoMEGA64_Anim extends ArduinoNano{
     }
     
     @Override
-    public void sendPattern(final List<Transducer> transducers) {
+    public void sendPattern(final List<Transducer> transducers, float power) {
        if(serial == null){
             return;
         }

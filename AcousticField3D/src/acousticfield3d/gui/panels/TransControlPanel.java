@@ -321,7 +321,7 @@ public class TransControlPanel extends javax.swing.JPanel {
     
     public void sendPattern(){
         if (device != null){
-            device.sendPattern( mf.simulation.getTransducers() );
+            device.sendPattern( mf.simulation.getTransducers(), mf.simulation.getPower());
         }
     }
     
@@ -331,14 +331,14 @@ public class TransControlPanel extends javax.swing.JPanel {
                 device.sendDurations( new int[]{frame} );
                 
             }else{
-                device.sendPattern( mf.simulation.getTransducers() );
+                device.sendPattern( mf.simulation.getTransducers() , mf.simulation.getPower());
             }
         }
     }
     
-    public void sendPattern(final List<Transducer> trans){
+    public void sendPattern(final List<Transducer> trans, float power){
         if (device != null){
-            device.sendPattern( trans );
+            device.sendPattern( trans ,  power);
         }
     }
     

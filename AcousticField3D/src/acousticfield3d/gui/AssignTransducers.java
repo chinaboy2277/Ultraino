@@ -413,7 +413,7 @@ public class AssignTransducers extends javax.swing.JFrame implements SerialComms
             }
             
             fakeTransducers.get(i).setAmplitude(1);
-            mf.transControlPanel.sendPattern( fakeTransducers );
+            mf.transControlPanel.sendPattern( fakeTransducers , 0.0f);
             fakeTransducers.get(i).setAmplitude(0);
             
             Thread.sleep(MILLI_WAIT_FOR_DRIVER );

@@ -32,6 +32,7 @@ public class Simulation {
     float particleSpeed, particleDensity;
     float minSize;
     
+    public float power = 0.0f;
     public ArrayList<Transducer> transducers = new ArrayList<>();
     public ArrayList<MeshEntity> controlPoints = new ArrayList<>();
     public GenericListModel<Animation> animations = new GenericListModel<>();
@@ -146,6 +147,14 @@ public class Simulation {
     
     public ArrayList<Transducer> getTransducers() {
         return transducers;
+    }
+    
+    public float getPower() {
+        return power;
+    }
+    
+    public void setPower(float power) {
+        this.power = power;
     }
     
     public void setTransducers(ArrayList<Transducer> transducers) {

@@ -49,7 +49,7 @@ public class DeviceConnection implements SerialComms.Listener{
     
     public void sendDurations(final int[] durations){}
     
-    public void sendPattern(final List<Transducer> transducers){}
+    public void sendPattern(final List<Transducer> transducers, float power){}
     
     public void sendAnim(final List<AnimKeyFrame> keyFrames){}
   

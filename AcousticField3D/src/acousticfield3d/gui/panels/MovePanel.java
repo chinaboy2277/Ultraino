@@ -30,6 +30,7 @@ import com.leapmotion.leap.Gesture.State;
 import acousticfield3d.gui.panels.ControlHapticObject;
 
 import acousticfield3d.math.Ray;
+import acousticfield3d.utils.Color;
 
 /**
  *
@@ -115,8 +116,13 @@ public class MovePanel extends javax.swing.JPanel {
                 //mf.selection.add(me);
                 
                 float newDistance = me.rayToBox(new Ray(new Vector3f(x, y, z), new Vector3f(x, y, z), false));
-                if (newDistance < distance && newDistance != -1.0f)
+                if (newDistance < distance && newDistance != -1.0f) {
                     distance = newDistance;
+                    me.setAlpha(0.5f);
+                }
+                else {
+                    me.setAlpha(1);
+                }
             }
         }
         return distance;

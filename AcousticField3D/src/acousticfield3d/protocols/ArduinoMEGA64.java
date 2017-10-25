@@ -133,7 +133,7 @@ public class ArduinoMEGA64 extends ArduinoNano{
     }
     
     @Override
-    public void sendPattern(final List<Transducer> transducers) {
+    public void sendPattern(final List<Transducer> transducers, float power) {
        if(serial == null){
             return;
         }

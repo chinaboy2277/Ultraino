@@ -52,7 +52,7 @@ public class ZynqFPGA extends ArduinoNano{
     }
     
     @Override
-    public void sendPattern(final List<Transducer> transducers) {
+    public void sendPattern(final List<Transducer> transducers, float power) {
       
         final int size = getTransducers();
         StringBuilder sb = new StringBuilder();
